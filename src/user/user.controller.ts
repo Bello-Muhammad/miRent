@@ -6,13 +6,13 @@ import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express
 import { ImageValidationPipe } from 'src/helper/file.validation';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
   @Post()
   @UseInterceptors(FileInterceptor('image'))
-  @UsePipes(ImageValidationPipe.bind(ImageValidationPipe.prototype.validateFile))
+  @UsePipes(ImageValidationPipe)
   create(
     @UploadedFile() file: Express.Multer.File,
     @Body() createUserDto: CreateUserDto
@@ -33,7 +33,7 @@ export class UserController {
 
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image'))
-  @UsePipes(ImageValidationPipe.bind(ImageValidationPipe.prototype.validateFile))
+  @UsePipes(ImageValidationPipe)
   update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -48,7 +48,7 @@ export class UserController {
     @Param('id') id: string,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    return this.userService.changePasword(id, changePasswordDto);
+    return this.userService.changePassword(id, changePasswordDto);
   }
 
   @Delete(':id')

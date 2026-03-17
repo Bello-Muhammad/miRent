@@ -2,23 +2,27 @@ import { BadRequestException, Injectable, PipeTransform } from "@nestjs/common";
 
 @Injectable()
 export class ImageValidationPipe implements PipeTransform {
-  async transform(files: any) {
-    // make sure we always work with a real array of files
+  async transform(value: any) {
+    // Handle single file
+    if (value && typeof value === 'object' && value.mimetype) {
+      return this.validateFile(value);
+    }
+
+    // Handle multiple files (existing logic)
     const fileArray: Express.Multer.File[] = [];
 
-    if (Array.isArray(files)) {
-      fileArray.push(...files);
-    } else if (files && Array.isArray(files.images)) {
-      fileArray.push(...files.images);
+    if (Array.isArray(value)) {
+      fileArray.push(...value);
+    } else if (value && Array.isArray(value.images)) {
+      fileArray.push(...value.images);
     }
 
     // early exit when nothing to validate
     if (fileArray.length === 0) {
-      return files;
+      return value;
     }
 
     fileArray.forEach(file => {
-
       if (!file || !file.mimetype || !file.mimetype.startsWith('image/')) {
         throw new BadRequestException('Invalid file type. Only images are allowed.');
       }
@@ -28,11 +32,11 @@ export class ImageValidationPipe implements PipeTransform {
       }
     });
 
-    return files;
+    return value;
   }
 
   async validateFile(file: Express.Multer.File) {
-    
+
     if (!file || !file.mimetype || !file.mimetype.startsWith('image/')) {
       throw new BadRequestException('Invalid file type. Only images are allowed.');
     }

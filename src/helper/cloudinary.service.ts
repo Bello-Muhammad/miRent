@@ -37,7 +37,7 @@ export class CloudinaryService {
                 propertyId,
                 publicId: uploadResult.public_id,
                 resourceType: uploadResult.resource_type,
-                url: uploadResult.url
+                url: uploadResult.secure_url
             };
 
         } catch (error) {
@@ -50,7 +50,7 @@ export class CloudinaryService {
         }
     }
 
-    async uploadMultipleImages(files: Express.Multer.File[], propertyId: string, publicId?: string, resourceType?: string) {
+    async uploadMultipleImages(files: Express.Multer.File[], propertyId: string) {
         try {
             if (!files || files.length === 0) {
                 throw new BadRequestException('No image files provided');
@@ -92,6 +92,7 @@ export class CloudinaryService {
 
             return result;
         } catch (error) {
+            Logger.error(`Error deleting image with publicId ${publicId}:`, error);
             throw new InternalServerErrorException('Could not delete image');
         }
     }
