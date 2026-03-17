@@ -3,7 +3,7 @@ import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Duration, PropertyType } from 'src/generated/prisma/enums';
-import { CloudinaryService } from './utils/cloudinary.service';
+import { CloudinaryService } from '../helper/cloudinary.service';
 
 @Injectable()
 export class PropertyService {

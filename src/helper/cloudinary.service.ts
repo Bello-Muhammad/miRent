@@ -50,11 +50,12 @@ export class CloudinaryService {
         }
     }
 
-    async uploadMultipleImages(files: Express.Multer.File[], propertyId: string) {
+    async uploadMultipleImages(files: Express.Multer.File[], propertyId: string, publicId?: string, resourceType?: string) {
         try {
             if (!files || files.length === 0) {
                 throw new BadRequestException('No image files provided');
             }
+
 
             const multipleUploads = await Promise.all(
                 files.map(async (file) => await this.uploadSingleImage(file, propertyId))
@@ -89,10 +90,8 @@ export class CloudinaryService {
                 throw new Error(`Cloudinary deletion failed: ${result.result}`);
             }
 
-            console.log(`Deleted asset: ${publicId}`, result);
             return result;
         } catch (error) {
-            console.error('Error deleting image from Cloudinary:', error);
             throw new InternalServerErrorException('Could not delete image');
         }
     }

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "user" ALTER COLUMN "publicId" DROP NOT NULL,
+ALTER COLUMN "resourceType" DROP NOT NULL;
