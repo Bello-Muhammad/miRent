@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer"
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsStrongPassword, minLength } from "class-validator"
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsStrongPassword } from "class-validator"
 import { Role } from "src/generated/prisma/enums"
 
 export class CreateUserDto {
@@ -8,13 +8,14 @@ export class CreateUserDto {
     name: string
     @IsNotEmpty({ message: 'email must be provided'})
     @IsString({ message: 'email must be string'})
-    @IsEmail({}, { message: 'provide a valide email'})
+    @IsEmail({}, { message: 'provide a valid email'})
     @Transform(({ value }) => value?.trim().toLowerCase()) 
     email: string
     @IsNotEmpty({ message: 'phone number not provided'})
     @IsString({ message: 'phone number must be string'})
     phone: string
     @IsOptional()
+    @IsEnum(Role, { message: 'role must be a valid Role em value'})
     @Transform(({ value }) => value ? value : 'AGENT' ) 
     role: Role
     @IsOptional()

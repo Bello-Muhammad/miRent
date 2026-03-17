@@ -36,25 +36,33 @@ export class UserService {
       data: createUserDto
     });
 
+    const { password, ...User } = user;
+
     return {
       status: 'success',
       message: 'Account created successfully',
-      data: user
+      data: User
     };
+
   }
 
   async findAll() {
-    const users = await this.prisma.user.findMany()
+    const users = await this.prisma.user.findMany({
+      omit: { password: true }
+    })
+
     return {
       status: 'success',
-      meesage: 'Users fetched successfuly',
+      message: 'Users fetched successfully',
       data: users
     };
   }
 
   async findOne(id: string) {
+
     const userExist = await this.prisma.user.findUnique({
-      where: { id }
+      where: { id },
+      omit: { password: true }
     });
 
     if (!userExist) {
@@ -63,7 +71,7 @@ export class UserService {
 
     return {
       status: 'success',
-      message: 'User fetched successfuly',
+      message: 'User fetched successfully',
       data: userExist
     };
   }
@@ -78,12 +86,13 @@ export class UserService {
     }
 
     if (file) {
+      const data = await this.cloudinary.uploadImage(file);
+
       if (userExist.publicId) {
         let resourceType = userExist.resourceType ? userExist.resourceType : 'image'
         await this.cloudinary.deleteImage(userExist.publicId, resourceType)
       }
 
-      const data = await this.cloudinary.uploadImage(file);
       updateUserDto.image = data.url;
       updateUserDto.publicId = data.public_id;
       updateUserDto.resourceType = data.resource_type;
@@ -99,7 +108,7 @@ export class UserService {
     };
   }
 
-  async changePasword(id: string, changePasswordDto: ChangePasswordDto) {
+  async changePassword(id: string, changePasswordDto: ChangePasswordDto) {
     const userExist = await this.prisma.user.findUnique({
       where: { id }
     });
@@ -139,9 +148,14 @@ export class UserService {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND)
     }
 
-    await this.prisma.user.delete({ where: { id }});
+    if (userExist.publicId) {
+      const resourceType = userExist.resourceType || 'image';
+      await this.cloudinary.deleteImage(userExist.publicId, resourceType);
+    }
 
-        return {
+    await this.prisma.user.delete({ where: { id } });
+
+    return {
       status: 'success',
       message: 'Account deleted successfully'
     }

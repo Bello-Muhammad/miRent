@@ -7,7 +7,7 @@ import { ImageValidationPipe } from '../helper/file.validation';
 
 
 
-@Controller('property')
+@Controller('propertys')
 export class PropertyController {
   constructor(private readonly propertyService: PropertyService) { }
 
@@ -15,7 +15,7 @@ export class PropertyController {
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'images', maxCount: 5 },
   ]))
-  @UsePipes(ImageValidationPipe.bind(ImageValidationPipe.prototype.transform))
+  @UsePipes(ImageValidationPipe)
   create(
     @Body() createPropertyDto: CreatePropertyDto,
     @UploadedFiles() files: { images?: Express.Multer.File[] }
