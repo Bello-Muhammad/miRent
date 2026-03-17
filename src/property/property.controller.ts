@@ -3,13 +3,13 @@ import { PropertyService } from './property.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { ImageValidationPipe } from './utils/file.validation';
+import { ImageValidationPipe } from '../helper/file.validation';
 
 
 
 @Controller('property')
 export class PropertyController {
-  constructor( private readonly propertyService: PropertyService ) { }
+  constructor(private readonly propertyService: PropertyService) { }
 
   @Post()
   @UseInterceptors(FileFieldsInterceptor([

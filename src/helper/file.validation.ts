@@ -30,4 +30,17 @@ export class ImageValidationPipe implements PipeTransform {
 
     return files;
   }
+
+  async validateFile(file: Express.Multer.File) {
+    
+    if (!file || !file.mimetype || !file.mimetype.startsWith('image/')) {
+      throw new BadRequestException('Invalid file type. Only images are allowed.');
+    }
+
+    if (file.size > 1024 * 1024 * 10) {
+      throw new BadRequestException('Each image must be ≤10MB');
+    }
+
+    return file;
+  }
 }
