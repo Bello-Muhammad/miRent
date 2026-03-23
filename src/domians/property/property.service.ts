@@ -1,0 +1,206 @@
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CreatePropertyDto } from './dto/create-property.dto';
+import { UpdatePropertyDto } from './dto/update-property.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { Duration, PropertyStatus, PropertyType, Role } from 'src/generated/prisma/enums';
+import { CloudinaryService } from '../helper/cloudinary.service';
+import { QueryPropertyDto } from './dto/query-property.dto';
+import { Prisma } from 'src/generated/prisma/client';
+
+@Injectable()
+export class PropertyService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cloudinaryService: CloudinaryService
+  ) { }
+
+  async create(id: string, createPropertyDto: CreatePropertyDto, files: Express.Multer.File[]) {
+
+    if (!files || files.length === 0) {
+      throw new HttpException({ message: 'Property image must be provided' }, HttpStatus.BAD_REQUEST)
+    }
+
+    const newProperty = await this.prisma.$transaction(async (prisma) => {
+      const newProperty = await prisma.property.create({
+        data: {
+          title: createPropertyDto.title,
+          description: createPropertyDto.description,
+          type: createPropertyDto.type as PropertyType,
+          amount: createPropertyDto.amount,
+          duration: createPropertyDto.duration as Duration,
+          address: createPropertyDto.address,
+          city: createPropertyDto.city,
+          state: createPropertyDto.state,
+          country: createPropertyDto.country,
+          ownerId: id,
+          area: createPropertyDto.area
+        }
+      });
+
+      const uploadResults = await this.cloudinaryService.uploadMultipleImages(files, newProperty.id);
+
+      await prisma.image.createMany({
+        data: uploadResults
+      })
+
+      return {
+        status: 'success',
+        message: 'Property created successfully',
+        data: newProperty
+      };
+    });
+
+    return newProperty;
+  }
+
+  async findAll(query: QueryPropertyDto) {
+    const { state, city, address, page = 1, limit = 10 } = query;
+
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.propertyWhereInput = {
+      status: PropertyStatus.AVAILABLE,
+      ...(state && { state: { contains: state, mode: Prisma.QueryMode.insensitive } }),
+      ...(city && { city: { contains: city, mode: Prisma.QueryMode.insensitive } }),
+      ...(address && { address: { contains: address, mode: Prisma.QueryMode.insensitive } }),
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.property.findMany({
+        where,
+        skip,
+        take: limit,
+        relationLoadStrategy: 'join',
+        include: {
+          images: true, user: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.property.count({ where }),
+    ]);
+
+    return {
+      status: 'success',
+      message: 'Properties fetched successfully',
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
+      },
+    };
+  }
+
+  async findAllForAdmins(query: QueryPropertyDto, id: string | null = null) {
+    const { state, city, address, page = 1, limit = 10 } = query;
+
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.propertyWhereInput = {
+      ...(state && { state: { contains: state, mode: Prisma.QueryMode.insensitive } }),
+      ...(city && { city: { contains: city, mode: Prisma.QueryMode.insensitive } }),
+      ...(address && { address: { contains: address, mode: Prisma.QueryMode.insensitive } }),
+    };
+
+    if (id) {
+      where.ownerId = id;
+    }
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.property.findMany({
+        where,
+        skip,
+        take: limit,
+        relationLoadStrategy: 'join',
+        include: {
+          images: true
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.property.count({ where }),
+    ]);
+
+    return {
+      status: 'success',
+      message: 'Properties fetched successfully',
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPrevPage: page > 1,
+      },
+    };
+  }
+
+  async findOne(id: string) {
+    const data = await this.prisma.property.findUnique({
+      where: {
+        id
+      },
+      relationLoadStrategy: 'join',
+      include: { images: true }
+    });
+
+    if (!data) {
+      throw new HttpException('Property not found', HttpStatus.NOT_FOUND);
+    }
+
+    return data
+  }
+
+  async update(id: string, ownerId: string, updatePropertyDto: UpdatePropertyDto) {
+    const existing = await this.prisma.property.findUnique({ where: { id, ownerId } })
+
+    if (!existing) {
+      throw new HttpException('Property to update not found!.', HttpStatus.NOT_FOUND);
+    }
+
+    return this.prisma.property.update({
+      where: { id, ownerId },
+      data: {
+        title: updatePropertyDto.title || existing.title,
+        description: updatePropertyDto.description || existing.description,
+        type: updatePropertyDto.type as PropertyType || existing.type,
+        amount: updatePropertyDto.amount || existing.amount,
+        address: updatePropertyDto.address || existing.address,
+        city: updatePropertyDto.city || existing.city,
+        state: updatePropertyDto.state || existing.state,
+        duration: updatePropertyDto.duration as Duration || existing.duration
+      }
+    });
+  }
+
+  async remove(id: string, ownerId: string) {
+    const data = await this.prisma.property.findUnique({
+      where: {
+        id,
+        ownerId
+      }
+    });
+
+    if (!data) {
+      throw new HttpException('Property not found!.', HttpStatus.NOT_FOUND);
+    }
+
+    await this.prisma.property.delete({
+      where: {
+        id,
+        ownerId
+      }
+    });
+
+    return { message: "Property deleted successfully" }
+  }
+}

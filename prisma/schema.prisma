@@ -16,31 +16,32 @@ datasource db {
 }
 
 model user {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String     @unique
   phone        String
-  role         Role     @default(AGENT)
+  role         Role       @default(AGENT)
   image        String?
   publicId     String?
   resourceType String?
-  status       String   @default("active")
+  status       String     @default("active")
   password     String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  // property property[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  properties   property[]
 }
 
 model property {
   id          String         @id @default(uuid())
-  // agent User @relation(fields: [agentId], references: [id])
-  agentId     String?
+  user        user           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String
   title       String
   description String?
-  type        PropertyType?
+  type        PropertyType
   amount      Decimal
   duration    Duration       @default(YEARLY)
   address     String
+  area        String?
   city        String
   state       String
   country     String
@@ -55,7 +56,7 @@ model image {
   url          String
   publicId     String
   resourceType String
-  property     property @relation(fields: [propertyId], references: [id])
+  property     property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId   String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -87,40 +88,3 @@ enum Duration {
   MONTHLY
   YEARLY
 }
-
-// Property
-// •	id
-// •	landlord_id (FK → User)
-// •	title
-// •	description
-// •	property_type (apartment | duplex | self-contained | commercial)
-// •	bedrooms
-// •	bathrooms
-// •	toilets
-// •	furnishing_status (furnished | semi | unfurnished)
-// •	rent_amount
-// •	rent_duration (monthly | yearly)
-// •	security_deposit
-// •	address
-// •	city
-// •	state
-// •	country
-// •	latitude
-// •	longitude
-// •	status (available | occupied | maintenance)
-// •	created_at
-// •	updated_at
-
-//User
-// •	id
-// •	first_name
-// •	last_name
-// •	email (unique)
-// •	phone
-// •	password
-// •	role (admin | landlord | tenant)
-// •	profile_image
-// •	is_verified
-// •	status (active | suspended)
-// •	created_at
-// •	updated_at

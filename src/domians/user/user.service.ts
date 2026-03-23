@@ -2,9 +2,10 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CloudinaryService } from 'src/helper/cloudinary.service';
+import { PrismaService } from 'src/domians/prisma/prisma.service';
+import { CloudinaryService } from 'src/domians/helper/cloudinary.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { AdminActionDto } from './dto/admin-action.dto';
 
 @Injectable()
 export class UserService {
@@ -136,6 +137,25 @@ export class UserService {
       status: 'success',
       message: 'Account password updated successfully'
     }
+  }
+
+    async accountAction(id: string, adminActionDto: AdminActionDto) {
+    const userExist = await this.prisma.user.findUnique({
+      where: { id }
+    });
+
+    if (!userExist) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND)
+    }
+
+    await this.prisma.user.update({
+      where: { id },
+      data: adminActionDto
+    })
+    return {
+      status: 'success',
+      message: `Account ${adminActionDto.status} successfully`
+    };
   }
 
   async remove(id: string) {
