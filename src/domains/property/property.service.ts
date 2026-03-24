@@ -14,43 +14,40 @@ export class PropertyService {
     private readonly cloudinaryService: CloudinaryService
   ) { }
 
-  async create(id: string, createPropertyDto: CreatePropertyDto, files: Express.Multer.File[]) {
-
-    if (!files || files.length === 0) {
-      throw new HttpException({ message: 'Property image must be provided' }, HttpStatus.BAD_REQUEST)
+  async create(ownerId: string, createPropertyDto: CreatePropertyDto, files: Express.Multer.File[]) {
+    if (!files?.length) {
+      throw new HttpException({ message: 'Property image must be provided' }, HttpStatus.BAD_REQUEST);
     }
 
-    const newProperty = await this.prisma.$transaction(async (prisma) => {
-      const newProperty = await prisma.property.create({
+
+    const uploadResults = await this.cloudinaryService.uploadMultipleImages(files);
+
+    if (!uploadResults?.length) {
+      throw new HttpException({ message: 'Image upload failed' }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    const property = await this.prisma.$transaction(async (prisma) => {
+      const property = await prisma.property.create({
         data: {
-          title: createPropertyDto.title,
-          description: createPropertyDto.description,
+          ...createPropertyDto,
           type: createPropertyDto.type as PropertyType,
-          amount: createPropertyDto.amount,
           duration: createPropertyDto.duration as Duration,
-          address: createPropertyDto.address,
-          city: createPropertyDto.city,
-          state: createPropertyDto.state,
-          country: createPropertyDto.country,
-          ownerId: id,
-          area: createPropertyDto.area
-        }
+          ownerId,
+          images: {
+            createMany: { data: uploadResults },
+          },
+        },
+        include: { images: true },
       });
 
-      const uploadResults = await this.cloudinaryService.uploadMultipleImages(files, newProperty.id);
-
-      await prisma.image.createMany({
-        data: uploadResults
-      })
-
-      return {
-        status: 'success',
-        message: 'Property created successfully',
-        data: newProperty
-      };
+      return property;
     });
 
-    return newProperty;
+    return {
+      status: 'success',
+      message: 'Property created successfully',
+      data: property,
+    };
   }
 
   async findAll(query: QueryPropertyDto) {
@@ -170,37 +167,40 @@ export class PropertyService {
     return this.prisma.property.update({
       where: { id, ownerId },
       data: {
-        title: updatePropertyDto.title || existing.title,
-        description: updatePropertyDto.description || existing.description,
-        type: updatePropertyDto.type as PropertyType || existing.type,
-        amount: updatePropertyDto.amount || existing.amount,
-        address: updatePropertyDto.address || existing.address,
-        city: updatePropertyDto.city || existing.city,
-        state: updatePropertyDto.state || existing.state,
-        duration: updatePropertyDto.duration as Duration || existing.duration
+        title: updatePropertyDto.title ?? existing.title,
+        description: updatePropertyDto.description ?? existing.description,
+        type: (updatePropertyDto.type as PropertyType) ?? existing.type,
+        amount: updatePropertyDto.amount ?? existing.amount,
+        address: updatePropertyDto.address ?? existing.address,
+        city: updatePropertyDto.city ?? existing.city,
+        state: updatePropertyDto.state ?? existing.state,
+        duration: (updatePropertyDto.duration as Duration )?? existing.duration,
+        area: updatePropertyDto.area ?? existing.area,
       }
     });
   }
 
-  async remove(id: string, ownerId: string) {
-    const data = await this.prisma.property.findUnique({
-      where: {
-        id,
-        ownerId
-      }
-    });
+ async remove(id: string, ownerId: string) {
+  const property = await this.prisma.property.findUnique({
+    where: { id, ownerId },
+    include: { images: true },
+  });
 
-    if (!data) {
-      throw new HttpException('Property not found!.', HttpStatus.NOT_FOUND);
-    }
-
-    await this.prisma.property.delete({
-      where: {
-        id,
-        ownerId
-      }
-    });
-
-    return { message: "Property deleted successfully" }
+  if (!property) {
+    throw new HttpException('Property not found', HttpStatus.NOT_FOUND);
   }
+
+  // run DB delete and Cloudinary delete concurrently
+  await Promise.all([
+    this.prisma.property.delete({ where: { id, ownerId } }),
+
+    property.images?.length
+      ? this.cloudinaryService.deleteImages(
+          property.images.map((img) => img.publicId),
+        )
+      : Promise.resolve(),
+  ]);
+
+  return {status: 'success', message: 'Property deleted successfully' };
+}
 }

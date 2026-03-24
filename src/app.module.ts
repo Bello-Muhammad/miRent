@@ -2,8 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import config from './config/config';
 import { JwtModule } from '@nestjs/jwt';
-import { DomainsModule } from './domians/domains.module';
-
+import { DomainsModule } from './domains/domains.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true, load: [config] }),

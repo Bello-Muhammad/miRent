@@ -15,8 +15,8 @@ export class CreateAuthDto {
     @IsString({ message: 'phone number must be string'})
     phone: string
     @IsOptional()
-    @IsEnum(Role, { message: 'role must be a valid Role em value'})
-    @Transform(({ value }) => value ? value : 'AGENT' ) 
+    @IsEnum(Role, { message: 'role must be a valid Role enum value'})
+    @Transform(({ value }) => value ? value : Role.AGENT ) 
     role: Role
     @IsOptional()
     image?: string

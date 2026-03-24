@@ -8,7 +8,7 @@ Accept: application/json
     "email": "belloc@example.com",
     "phone": "09034028984",
     "role": "ADMIN",
-    "password": "@Ao09034028984"
+    "password": "xxxxxxxxxxxxx"
 }
 
 ###LOGIN ACCOUNT
@@ -18,5 +18,5 @@ Accept: application/json
 
 {
     "email": "bellomoh@example.com",
-    "password": "@Ao09034028984"
+    "password": "xxxxxxxxxxxxx"
 }

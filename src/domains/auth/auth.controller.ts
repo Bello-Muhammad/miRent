@@ -2,9 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, Use
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
-import { UserService } from 'src/domians/user/user.service';
+import { UserService } from 'src/domains/user/user.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImageValidationPipe } from 'src/domians/helper/file.validation';
+import { ImageValidationPipe } from 'src/domains/helper/file.validation';
 import { LoginDto } from './dto/login-auth.dto';
 import { Role, Roles } from '../middleware/auth.guard';
 

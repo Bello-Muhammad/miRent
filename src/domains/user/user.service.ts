@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { hash, compare } from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/domians/prisma/prisma.service';
-import { CloudinaryService } from 'src/domians/helper/cloudinary.service';
+import { PrismaService } from 'src/domains/prisma/prisma.service';
+import { CloudinaryService } from 'src/domains/helper/cloudinary.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { AdminActionDto } from './dto/admin-action.dto';
 
@@ -24,18 +24,29 @@ export class UserService {
       throw new HttpException('User exist already', HttpStatus.BAD_REQUEST)
     }
 
+    let uploadedPublicId: string | null = null;
+
     if (file) {
       const data = await this.cloudinary.uploadImage(file);
       createUserDto.image = data.url;
       createUserDto.publicId = data.public_id;
-      createUserDto.resourceType = data.resource_type
+      createUserDto.resourceType = data.resource_type,
+      uploadedPublicId = data.public_id;
     }
 
     createUserDto.password = await hash(createUserDto.password, 10);
 
-    const user = await this.prisma.user.create({
-      data: createUserDto
-    });
+     let user;
+    try {
+      user = await this.prisma.user.create({
+        data: createUserDto
+      });
+    } catch (error) {
+      if (uploadedPublicId) {
+        await this.cloudinary.deleteImages([uploadedPublicId]).catch(() => {});
+     }
+      throw error;
+   }
 
     const { password, ...User } = user;
 
@@ -90,8 +101,7 @@ export class UserService {
       const data = await this.cloudinary.uploadImage(file);
 
       if (userExist.publicId) {
-        let resourceType = userExist.resourceType ? userExist.resourceType : 'image'
-        await this.cloudinary.deleteImage(userExist.publicId, resourceType)
+
       }
 
       updateUserDto.image = data.url;
@@ -99,10 +109,15 @@ export class UserService {
       updateUserDto.resourceType = data.resource_type;
     }
 
-    await this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: updateUserDto
     })
+
+    if (updatedUser && updateUserDto.image && userExist.publicId) {
+      await this.cloudinary.deleteImages([userExist.publicId])
+    }
+
     return {
       status: 'success',
       message: 'User data updated successfully'
@@ -139,7 +154,7 @@ export class UserService {
     }
   }
 
-    async accountAction(id: string, adminActionDto: AdminActionDto) {
+  async accountAction(id: string, adminActionDto: AdminActionDto) {
     const userExist = await this.prisma.user.findUnique({
       where: { id }
     });
@@ -169,8 +184,7 @@ export class UserService {
     }
 
     if (userExist.publicId) {
-      const resourceType = userExist.resourceType || 'image';
-      await this.cloudinary.deleteImage(userExist.publicId, resourceType);
+      await this.cloudinary.deleteImages([userExist.publicId]);
     }
 
     await this.prisma.user.delete({ where: { id } });

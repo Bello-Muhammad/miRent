@@ -9,7 +9,6 @@ export class LoginDto {
     email: string
 
     @IsNotEmpty({ message: 'password not provided'})
-    @IsString({ message: 'password must be string must be string'})
-    @Transform(({ value }) => value?.trim())
+    @IsString({ message: 'password must be a string'})
     password: string
 }

@@ -2,28 +2,28 @@
 GET http://localhost:3000/api/users
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YzcyMmU5NS02YWFjLTRiOTMtYWU2ZS0yZjQyMjg5ZTcyY2IiLCJpYXQiOjE3NzQyNzc4NjcsImV4cCI6MTc3NDI4MTQ2N30.PfLzCbW9mDYEQpLUxLcRyi_zPN68Szl4tOo350IFLxo
+Authorization: Bearer <token>
 
 
 ###GET USER BY ADMIN
 GET http://localhost:3000/api/users/6c722e95-6aac-4b93-ae6e-2f42289e72cb
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YzcyMmU5NS02YWFjLTRiOTMtYWU2ZS0yZjQyMjg5ZTcyY2IiLCJpYXQiOjE3NzQyNzc4NjcsImV4cCI6MTc3NDI4MTQ2N30.PfLzCbW9mDYEQpLUxLcRyi_zPN68Szl4tOo350IFLxo
+Authorization: Bearer <token>
 
 
 ###GET MY PROFILE
 GET http://localhost:3000/api/users/profile
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YzcyMmU5NS02YWFjLTRiOTMtYWU2ZS0yZjQyMjg5ZTcyY2IiLCJpYXQiOjE3NzQyODUzMDcsImV4cCI6MTc3NDI4ODkwN30.-WUFlQyeJ5xY7CMf6NFW1rAMe_qRpJoSHEFkSC3UB5U
+Authorization: Bearer <token>
 
 
 ###CHANGE USER PASSWORD
 PATCH http://localhost:3000/api/users/me/edit
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YzcyMmU5NS02YWFjLTRiOTMtYWU2ZS0yZjQyMjg5ZTcyY2IiLCJpYXQiOjE3NzQyNzc4NjcsImV4cCI6MTc3NDI4MTQ2N30.PfLzCbW9mDYEQpLUxLcRyi_zPN68Szl4tOo350IFLxo
+Authorization: Bearer <token>
 
 {
   "name": "bello yenyen"
@@ -34,32 +34,31 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YzcyM
 PATCH http://localhost:3000/api/users/me/change-password
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer
+Authorization: Bearer <token>
 
 {
-  "currentPassword": "09034028984",
-  "newPassword": "0@A8157874122o"
+  "currentPassword": "xxxxxxxxx",
+  "newPassword": "xxxxxxxxxxx"
 }
-
 
 ###UPDATE ACCOUNT STATUS USER BY admin
 DELETE http://localhost:3000/api/users/5a1b20d8-7e89-4789-b0ef-4f1992004da7
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer
+Authorization: Bearer <token>
 
 {
-    "status": "suspended" //can suspend and activate account back(active | suspended
+    "status": "suspended"
 }
 
 ###DELETE MY ACCOUNT BY USER 
 DELETE http://localhost:3000/api/users/profile/delete-account
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2YzcyMmU5NS02YWFjLTRiOTMtYWU2ZS0yZjQyMjg5ZTcyY2IiLCJpYXQiOjE3NzQyOTA5NjgsImV4cCI6MTc3NDI5NDU2OH0.w-vJ62wz4kPYu1svZJLTtRxmX8HEBWnMsOScMrRkr7E
+Authorization: Bearer <token>
 
 ###DELETE USER ACCOUNT BY admin
 DELETE http://localhost:3000/api/users/5a1b20d8-7e89-4789-b0ef-4f1992004da7
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer
+Authorization: Bearer <token>

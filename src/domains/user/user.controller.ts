@@ -3,7 +3,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
-import { ImageValidationPipe } from 'src/domians/helper/file.validation';
+import { ImageValidationPipe } from 'src/domains/helper/file.validation';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { Role, Roles } from '../middleware/auth.guard';
 import { AdminActionDto } from './dto/admin-action.dto';
@@ -45,6 +45,7 @@ export class UserController {
   }
 
   @Patch('profile/change-password')
+  @Roles()
   changePassword(
     @Req() req,
     @Body() changePasswordDto: ChangePasswordDto,
@@ -62,6 +63,7 @@ export class UserController {
   }
 
   @Delete('profile/delete-account')
+  @Roles()
   accountDeletion(@Req() req) {
     return this.userService.remove(req.user.id);
   }
