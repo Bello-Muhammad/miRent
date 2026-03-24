@@ -1,0 +1,54 @@
+###Add new property
+POST http://localhost:3000/api/properties/create
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer <token>
+
+{
+  "title": "Yalwawa House34",
+  "description": "Self contain a room, kitchen, toilet, and water in compound",
+  "type": "SELF_CONTAINED",
+  "amount": 80000,
+  "duration": "YEARLY",
+  "address": "layin gidan wanka, yalwawa",
+  "city": "Dutse",
+  "state": "Jigawa",
+  "country": "Nigeria"
+}
+
+###GET ALL PROPERTY
+GET http://localhost:3000/api/properties
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer <token>
+
+###GET ALL PROPERTY FOR PUBLIC USER
+GET http://localhost:3000/api/properties/all-available
+Content-Type: application/json
+Accept: application/json
+
+###GET property
+GET http://localhost:3000/api/properties/bdbb9dd3-807b-49b2-80f6-854a4eb1384c
+Content-Type: application/json
+Accept: application/json
+
+
+###update property
+PATCH http://localhost:3000/api/properties/bdbb9dd3-807b-49b2-80f6-854a4eb1384c
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer <token>
+
+{
+  "title": "Yalwawa House6",
+  "description": "Self contain a room, no kitchen, SHARED toilet, and water in compound",
+  "type": "SINGLE_ROOM",
+  "amount": 50000
+}
+
+
+###delete property
+DELETE http://localhost:3000/api/properties/33bc1676-29d2-48f8-a155-1a492613795d
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer <token>

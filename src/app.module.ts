@@ -1,17 +1,20 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { PropertyModule } from './property/property.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { UserModule } from './user/user.module';
-
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import config from './config/config';
+import { JwtModule } from '@nestjs/jwt';
+import { DomainsModule } from './domains/domains.module';
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    PropertyModule,
-    PrismaModule,
-    UserModule
+    ConfigModule.forRoot({ isGlobal: true, cache: true, load: [config] }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (config) => ({
+        secret: config.get('jwtSecret')
+      }),
+      global: true,
+      inject: [ConfigService]
+    }),
+    DomainsModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule { }

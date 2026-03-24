@@ -1,0 +1,22 @@
+###CREATE ACCOUNT
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Bello Bello",
+    "email": "belloc@example.com",
+    "phone": "09034028984",
+    "role": "ADMIN",
+    "password": "xxxxxxxxxxxxx"
+}
+
+###LOGIN ACCOUNT
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email": "bellomoh@example.com",
+    "password": "xxxxxxxxxxxxx"
+}

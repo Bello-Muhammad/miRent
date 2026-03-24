@@ -5,16 +5,18 @@ import 'dotenv/config';
 
 @Injectable()
 export class CloudinaryService {
+    constructor() {
+        v2.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
+            api_key: process.env.CLOUDINARY_API_KEY as string,
+            api_secret: process.env.CLOUDINARY_API_SECRET as string,
+        });
+    }
 
     async uploadImage(
         fileName: Express.Multer.File,
     ): Promise<UploadApiResponse | UploadApiErrorResponse> {
         return new Promise((resolve, reject) => {
-            v2.config({
-                cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
-                api_key: process.env.CLOUDINARY_API_KEY as string,
-                api_secret: process.env.CLOUDINARY_API_SECRET as string,
-            });
 
             const upload = v2.uploader.upload_stream((error, result) => {
                 if (error) return reject(error);
@@ -24,7 +26,7 @@ export class CloudinaryService {
         });
     }
 
-    async uploadSingleImage(file: Express.Multer.File, propertyId: string) {
+    async uploadSingleImage(file: Express.Multer.File) {
         try {
 
             if (!file) {
@@ -34,7 +36,6 @@ export class CloudinaryService {
             const uploadResult = await this.uploadImage(file);
 
             return {
-                propertyId,
                 publicId: uploadResult.public_id,
                 resourceType: uploadResult.resource_type,
                 url: uploadResult.secure_url
@@ -50,7 +51,7 @@ export class CloudinaryService {
         }
     }
 
-    async uploadMultipleImages(files: Express.Multer.File[], propertyId: string) {
+    async uploadMultipleImages(files: Express.Multer.File[]) {
         try {
             if (!files || files.length === 0) {
                 throw new BadRequestException('No image files provided');
@@ -58,7 +59,7 @@ export class CloudinaryService {
 
 
             const multipleUploads = await Promise.all(
-                files.map(async (file) => await this.uploadSingleImage(file, propertyId))
+                files.map(async (file) => await this.uploadSingleImage(file))
             )
 
             return multipleUploads;
@@ -72,28 +73,28 @@ export class CloudinaryService {
         }
     }
 
-    async deleteImage(publicId: string, resourceType: string) {
-        try {
-            v2.config({
-                cloud_name: process.env.CLOUDINARY_CLOUD_NAME as string,
-                api_key: process.env.CLOUDINARY_API_KEY as string,
-                api_secret: process.env.CLOUDINARY_API_SECRET as string,
-            });
+    async deleteImages(publicIds: string[], resourceType: string = 'image') {
+        if (!publicIds?.length) return;
 
-            // Set invalidate to true to purge the CDN cache immediately
-            const result = await v2.uploader.destroy(publicId, {
+        try {
+            const result = await v2.api.delete_resources(publicIds, {
                 resource_type: resourceType,
                 invalidate: true,
             });
 
-            if (result.result !== 'ok') {
-                throw new Error(`Cloudinary deletion failed: ${result.result}`);
+            // delete_resources returns a map of { publicId: 'deleted' | 'not_found' }
+            const failed = Object.entries(result.deleted)
+                .filter(([_, status]) => status !== 'deleted')
+                .map(([publicId]) => publicId);
+
+            if (failed.length) {
+                Logger.warn(`Some images were not deleted from Cloudinary: ${failed.join(', ')}`);
             }
 
             return result;
         } catch (error) {
-            Logger.error(`Error deleting image with publicId ${publicId}:`, error);
-            throw new InternalServerErrorException('Could not delete image');
+            Logger.error('Error deleting images from Cloudinary:', error);
+            throw new InternalServerErrorException('Could not delete images from storage');
         }
     }
 }
