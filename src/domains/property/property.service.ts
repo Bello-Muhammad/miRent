@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -182,15 +182,21 @@ export class PropertyService {
     });
   }
 
-  async updatePropertyImage(id: string, file: Express.Multer.File) {
+  async updatePropertyImage(id: string, ownerId: string, file: Express.Multer.File) {
 
-    const existing = await this.prisma.image.findUnique({ where: { id } })
+    const existing = await this.prisma.image.findFirst({
+      where: { 
+        id,
+        property: { ownerId }
+       }
+    })
 
     if (!existing) {
-      throw new HttpException('Image property not found!.', HttpStatus.NOT_FOUND);
+      throw new HttpException('Property image not found', HttpStatus.NOT_FOUND);
     }
 
     const data = await this.cloudinary.uploadImage(file);
+    let oldPublicId = existing.publicId;
 
     try {
 
@@ -201,17 +207,20 @@ export class PropertyService {
           publicId: data.public_id,
           resourceType: data.resource_type
         }
-      })
-
-      await this.cloudinary.deleteImages([existing.publicId])
+      });
 
     } catch (error) {
       await this.cloudinary.deleteImages([data.publicId])
+      throw new HttpException('Failed to update image record', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    this.cloudinary.deleteImages([oldPublicId]).catch(() => {
+      Logger.error('old image clean up from cloudinary failed')
+   });
 
     return {
       status: 'success',
-      message: 'Property image upload successfully'
+      message: 'Property image updated successfully'
     }
   }
 

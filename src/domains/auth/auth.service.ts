@@ -20,7 +20,7 @@ export class AuthService {
     const token = await this.jwtService.sign({ userId: user.id });
 
     let key = `user_${token}`;
-    let ttl = Number(process.env.Redis_TTL) ?? 36000000
+    let ttl = Number(process.env.Redis_TTL) || 36000000
 
     await this.cacheManager.set(key, token, ttl)
 

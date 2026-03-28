@@ -62,9 +62,10 @@ export class PropertyController {
   @UsePipes(ImageValidationPipe)
   updatePropertyImage(
     @Param('id') id: string,
+    @Req() req,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.propertyService.updatePropertyImage(id, file);
+    return this.propertyService.updatePropertyImage(id, req.user.id, file);
   }
 
   @Delete(':id')

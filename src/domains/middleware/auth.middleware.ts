@@ -20,6 +20,11 @@ export class AuthMiddleware implements NestMiddleware {
         }
 
         const token = authHeader.split(' ')[1];
+
+         if (!token || !authHeader.toLowerCase().startsWith('bearer ')) {
+            throw new UnauthorizedException('Invalid authorization header format');
+        }
+
         const checkActiveSession = await this.cacheManager.get(`user_${token}`);
 
         if (!checkActiveSession) {
@@ -40,11 +45,11 @@ export class AuthMiddleware implements NestMiddleware {
                 throw new UnauthorizedException('Unauthenticated user access');
             }
 
-            let ttl = Number(process.env.Redis_TTL) ?? 36000000;
+            let ttl = Number(process.env.Redis_TTL) || 36000000;
 
             await this.cacheManager.set(`user_${token}`, token, ttl);
 
-            req.user = { ...user, token };
+            req.user = { id: user.id, role: user.role, token };
             next();
         } catch (error) {
             Logger.error('authentication error: ', error)

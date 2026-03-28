@@ -26,11 +26,13 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         HelperModule,
         ThrottlerModule.forRoot([
             {
+                name: 'base',
                 ttl: 1860000, //30min
                 limit: 200
             },
             {
-                ttl: 864000,
+                name: 'daily',
+                ttl: 864000, //24hrs
                 limit: 400
             },
         ])
