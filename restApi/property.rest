@@ -29,13 +29,13 @@ Content-Type: application/json
 Accept: application/json
 
 ###GET property
-GET http://localhost:3000/api/properties/bdbb9dd3-807b-49b2-80f6-854a4eb1384c
+GET http://localhost:3000/api/properties/:id
 Content-Type: application/json
 Accept: application/json
 
 
 ###update property
-PATCH http://localhost:3000/api/properties/bdbb9dd3-807b-49b2-80f6-854a4eb1384c
+PATCH http://localhost:3000/api/properties/:id
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer <token>
@@ -49,7 +49,7 @@ Authorization: Bearer <token>
 
 
 ###delete property
-DELETE http://localhost:3000/api/properties/33bc1676-29d2-48f8-a155-1a492613795d
+DELETE http://localhost:3000/api/properties/:id
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer <token>

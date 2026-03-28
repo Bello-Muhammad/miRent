@@ -6,7 +6,7 @@ Authorization: Bearer <token>
 
 
 ###GET USER BY ADMIN
-GET http://localhost:3000/api/users/6c722e95-6aac-4b93-ae6e-2f42289e72cb
+GET http://localhost:3000/api/users/:id
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer <token>
@@ -42,7 +42,7 @@ Authorization: Bearer <token>
 }
 
 ###UPDATE ACCOUNT STATUS USER BY admin
-DELETE http://localhost:3000/api/users/5a1b20d8-7e89-4789-b0ef-4f1992004da7
+DELETE http://localhost:3000/api/users/:id
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer <token>
@@ -58,7 +58,7 @@ Accept: application/json
 Authorization: Bearer <token>
 
 ###DELETE USER ACCOUNT BY admin
-DELETE http://localhost:3000/api/users/5a1b20d8-7e89-4789-b0ef-4f1992004da7
+DELETE http://localhost:3000/api/users/:id
 Content-Type: application/json
 Accept: application/json
 Authorization: Bearer <token>
