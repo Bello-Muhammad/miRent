@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UsePipes, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UsePipes, UploadedFile, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -30,9 +30,9 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  // @Post('logout')
-  // // @Roles(Role.ADMIN, Role.AGENT)
-  // logOut(@Param('id') id: string) {
-  //   return this.authService.logOut(+id);
-  // }
+  @Post('logout')
+  @Roles(Role.ADMIN, Role.AGENT)
+  logOut(@Req() req) {
+    return this.authService.logOut(req.user.id, req.user.token);
+  }
 }

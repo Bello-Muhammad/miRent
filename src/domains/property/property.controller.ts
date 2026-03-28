@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, Injectable, PipeTransform, BadRequestException, UsePipes, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFiles, Injectable, PipeTransform, BadRequestException, UsePipes, Req, Query, UploadedFile } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
@@ -54,6 +54,17 @@ export class PropertyController {
   update(@Param('id') id: string, @Body() updatePropertyDto: UpdatePropertyDto, @Req() req) {
 
     return this.propertyService.update(id, req.user.id, updatePropertyDto);
+  }
+
+  @Patch('image/:id')
+  @Roles()
+  @UseInterceptors(FileInterceptor('image'))
+  @UsePipes(ImageValidationPipe)
+  updatePropertyImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.propertyService.updatePropertyImage(id, file);
   }
 
   @Delete(':id')

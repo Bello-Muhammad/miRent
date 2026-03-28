@@ -11,7 +11,7 @@ import { Prisma } from 'src/generated/prisma/client';
 export class PropertyService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly cloudinaryService: CloudinaryService
+    private readonly cloudinary: CloudinaryService
   ) { }
 
   async create(ownerId: string, createPropertyDto: CreatePropertyDto, files: Express.Multer.File[]) {
@@ -20,7 +20,7 @@ export class PropertyService {
     }
 
 
-    const uploadResults = await this.cloudinaryService.uploadMultipleImages(files);
+    const uploadResults = await this.cloudinary.uploadMultipleImages(files);
 
     if (!uploadResults?.length) {
       throw new HttpException({ message: 'Image upload failed' }, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -32,6 +32,7 @@ export class PropertyService {
           ...createPropertyDto,
           type: createPropertyDto.type as PropertyType,
           duration: createPropertyDto.duration as Duration,
+          status: createPropertyDto.status as PropertyStatus,
           ownerId,
           images: {
             createMany: { data: uploadResults },
@@ -174,33 +175,67 @@ export class PropertyService {
         address: updatePropertyDto.address ?? existing.address,
         city: updatePropertyDto.city ?? existing.city,
         state: updatePropertyDto.state ?? existing.state,
-        duration: (updatePropertyDto.duration as Duration )?? existing.duration,
+        status: (updatePropertyDto.status as PropertyStatus) ?? existing.status,
+        duration: (updatePropertyDto.duration as Duration) ?? existing.duration,
         area: updatePropertyDto.area ?? existing.area,
       }
     });
   }
 
- async remove(id: string, ownerId: string) {
-  const property = await this.prisma.property.findUnique({
-    where: { id, ownerId },
-    include: { images: true },
-  });
+  async updatePropertyImage(id: string, file: Express.Multer.File) {
 
-  if (!property) {
-    throw new HttpException('Property not found', HttpStatus.NOT_FOUND);
+    const existing = await this.prisma.image.findUnique({ where: { id } })
+
+    if (!existing) {
+      throw new HttpException('Image property not found!.', HttpStatus.NOT_FOUND);
+    }
+
+    const data = await this.cloudinary.uploadImage(file);
+
+    try {
+
+      await this.prisma.image.update({
+        where: { id },
+        data: {
+          url: data.secure_url,
+          publicId: data.public_id,
+          resourceType: data.resource_type
+        }
+      })
+
+      await this.cloudinary.deleteImages([existing.publicId])
+
+    } catch (error) {
+      await this.cloudinary.deleteImages([data.publicId])
+    }
+
+    return {
+      status: 'success',
+      message: 'Property image upload successfully'
+    }
   }
 
-  // run DB delete and Cloudinary delete concurrently
-  await Promise.all([
-    this.prisma.property.delete({ where: { id, ownerId } }),
+  async remove(id: string, ownerId: string) {
+    const property = await this.prisma.property.findUnique({
+      where: { id, ownerId },
+      include: { images: true },
+    });
 
-    property.images?.length
-      ? this.cloudinaryService.deleteImages(
+    if (!property) {
+      throw new HttpException('Property not found', HttpStatus.NOT_FOUND);
+    }
+
+    // run DB delete and Cloudinary delete concurrently
+    await Promise.all([
+      this.prisma.property.delete({ where: { id, ownerId } }),
+
+      property.images?.length
+        ? this.cloudinary.deleteImages(
           property.images.map((img) => img.publicId),
         )
-      : Promise.resolve(),
-  ]);
+        : Promise.resolve(),
+    ]);
 
-  return {status: 'success', message: 'Property deleted successfully' };
-}
+    return { status: 'success', message: 'Property deleted successfully' };
+  }
 }

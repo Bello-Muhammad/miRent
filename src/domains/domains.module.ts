@@ -10,17 +10,30 @@ import { AuthController } from './auth/auth.controller';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './middleware/auth.guard';
 import { HelperModule } from './helper/helper.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
     providers: [
-        { provide: APP_GUARD, useClass: RolesGuard }
+        { provide: APP_GUARD, useClass: RolesGuard },
+        { provide: APP_GUARD, useClass: ThrottlerGuard },
+
     ],
     imports: [
         PrismaModule,
         AuthModule,
         PropertyModule,
         UserModule,
-        HelperModule
+        HelperModule,
+        ThrottlerModule.forRoot([
+            {
+                ttl: 1860000, //30min
+                limit: 200
+            },
+            {
+                ttl: 864000,
+                limit: 400
+            },
+        ])
     ],
 })
 export class DomainsModule {

@@ -14,6 +14,7 @@ Authorization: Bearer <token>
   "city": "Dutse",
   "state": "Jigawa",
   "country": "Nigeria"
+  //use post man or insomia for multipart form(image must be provided)
 }
 
 ###GET ALL PROPERTY

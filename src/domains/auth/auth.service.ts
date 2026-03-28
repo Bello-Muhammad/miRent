@@ -1,18 +1,28 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/domains/prisma/prisma.service';
 import { LoginDto } from './dto/login-auth.dto';
 import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) { }
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private prisma: PrismaService,
+    private jwtService: JwtService
+  ) { }
+
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
     const user = await this.validateCredentials(email, password);
-    const token = await this.jwtService.sign({ userId: user.id }, { expiresIn: '1h' });
+    const token = await this.jwtService.sign({ userId: user.id });
 
+    let key = `user_${token}`;
+    let ttl = Number(process.env.Redis_TTL) ?? 36000000
+
+    await this.cacheManager.set(key, token, ttl)
 
     return {
       status: 'success',
@@ -21,9 +31,29 @@ export class AuthService {
     };
   }
 
-  // logOut(id: number) {
-  //   return `This action removes a #${id} auth`;
-  // }
+  async logOut(id: string, token: string) {
+
+    const userExist = await this.prisma.user.findUnique({
+      where: { id }
+    });
+
+    if(!userExist) {
+      throw new HttpException('account not found', HttpStatus.NOT_FOUND)
+    }
+
+    const session = await this.cacheManager.get(`user_${token}`);
+
+    if(!session) {
+      throw new UnauthorizedException('Unauthorized access.')
+    }
+    
+    await this.cacheManager.del(`user_${token}`)
+
+    return {
+      status: 'success',
+      message: 'User logged out successfully'
+    }
+  }
 
   private async validateCredentials(email: string, password: string) {
 
