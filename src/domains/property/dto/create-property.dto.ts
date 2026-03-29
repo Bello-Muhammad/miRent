@@ -16,6 +16,7 @@ export class CreatePropertyDto {
     type: string
 
     @IsNotEmpty({ message: 'property rent amount not provided' })
+    @Transform(({ value }) => value ? Number(value) : value ) 
     @IsInt()
     amount: number
 
@@ -49,4 +50,8 @@ export class CreatePropertyDto {
     @IsEnum(PropertyStatus, { message: 'status must be a valid PropertyStatus value' })
     @Transform(({ value }) => value ? value : PropertyStatus.AVAILABLE ) 
     status: PropertyStatus
+
+    // @IsOptional()
+    // @IsString()
+    // images: string
 }
