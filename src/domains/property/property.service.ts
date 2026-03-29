@@ -18,7 +18,8 @@ export class PropertyService {
     if (!files?.length) {
       throw new HttpException({ message: 'Property image must be provided' }, HttpStatus.BAD_REQUEST);
     }
-
+    console.log(files)
+    console.log(createPropertyDto)
 
     const uploadResults = await this.cloudinary.uploadMultipleImages(files);
 

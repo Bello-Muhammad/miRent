@@ -1,21 +1,66 @@
-###Add new property
+### Add new property
 POST http://localhost:3000/api/properties/create
-Content-Type: application/json
+Content-Type: multipart/form-data; boundary=----Boundary
 Accept: application/json
 Authorization: Bearer <token>
 
-{
-  "title": "Yalwawa House34",
-  "description": "Self contain a room, kitchen, toilet, and water in compound",
-  "type": "SELF_CONTAINED",
-  "amount": 80000,
-  "duration": "YEARLY",
-  "address": "layin gidan wanka, yalwawa",
-  "city": "Dutse",
-  "state": "Jigawa",
-  "country": "Nigeria"
-  //use post man or insomia for multipart form(image must be provided)
-}
+------Boundary
+Content-Disposition: form-data; name="title"
+
+Yalwawa House34
+------Boundary
+Content-Disposition: form-data; name="description"
+
+Self contain a room, kitchen, toilet, and water in compound
+------Boundary
+Content-Disposition: form-data; name="type"
+
+SELF_CONTAINED
+------Boundary
+Content-Disposition: form-data; name="amount"
+
+80000
+------Boundary
+Content-Disposition: form-data; name="duration"
+
+YEARLY
+------Boundary
+Content-Disposition: form-data; name="address"
+
+layin gidan wanka, yalwawa
+------Boundary
+Content-Disposition: form-data; name="city"
+
+Dutse
+------Boundary
+Content-Disposition: form-data; name="state"
+
+Jigawa
+------Boundary
+Content-Disposition: form-data; name="country"
+
+Nigeria
+------Boundary
+Content-Disposition: form-data; name="images"; filename="house1.jpg"
+Content-Type: image/jpeg
+
+< C:/Users/you/Pictures/house1.jpg
+------Boundary
+Content-Disposition: form-data; name="images"; filename="house2.jpg"
+Content-Type: image/jpeg
+
+< C:/Users/you/Pictures/house2.jpg
+------Boundary
+Content-Disposition: form-data; name="images"; filename="house3.jpg"
+Content-Type: image/jpeg
+
+< C:/Users/you/Pictures/house3.jpg
+------Boundary
+Content-Disposition: form-data; name="images"; filename="house4.jpg"
+Content-Type: image/jpeg
+
+< C:/Users/you/Pictures/house4.jpg
+------Boundary--
 
 ###GET ALL PROPERTY
 GET http://localhost:3000/api/properties
@@ -46,6 +91,19 @@ Authorization: Bearer <token>
   "type": "SINGLE_ROOM",
   "amount": 50000
 }
+
+###update property image
+PATCH http://localhost:3000/api/properties/image/:id
+Content-Type: multipart/form-data; boundary=----Boundary
+Accept: application/json
+Authorization: Bearer <token>
+
+------Boundary
+Content-Disposition: form-data; name="images"; filename="house1.jpg"
+Content-Type: image/jpeg
+
+< C:/Users/you/Pictures/house1.jpg
+------Boundary--
 
 
 ###delete property
