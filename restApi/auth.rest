@@ -8,7 +8,7 @@ Accept: application/json
     "email": "belloc@example.com",
     "phone": "09034028984",
     "role": "ADMIN",
-    "password": "xxxxxxxxxxxxx"
+    "password": "$Ao9oxxxxxxxxxx"
 }
 
 ###LOGIN ACCOUNT
@@ -17,6 +17,12 @@ Content-Type: application/json
 Accept: application/json
 
 {
-    "email": "bellomoh@example.com",
-    "password": "xxxxxxxxxxxxx"
+    "email": "belloc@example.com",
+    "password": "$Ao9oxxxxxxxxxx"
 }
+
+###LOGOUT ACCOUNT
+POST http://localhost:3000/api/auth/logout
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer <token>

@@ -1,5 +1,6 @@
 import { Transform } from "class-transformer"
-import { IsDecimal, IsInt, IsNotEmpty, IsOptional, IsString } from "class-validator"
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from "class-validator"
+import { PropertyStatus } from "src/generated/prisma/enums"
 
 export class CreatePropertyDto {
     @IsNotEmpty({ message: 'property title not provided' })
@@ -15,6 +16,7 @@ export class CreatePropertyDto {
     type: string
 
     @IsNotEmpty({ message: 'property rent amount not provided' })
+    @Transform(({ value }) => value ? Number(value) : value ) 
     @IsInt()
     amount: number
 
@@ -43,4 +45,13 @@ export class CreatePropertyDto {
     @IsNotEmpty({ message: 'provide country property\'s in' })
     @IsString({ message: 'property country value must be string' })
     country: string
+
+    @IsOptional()
+    @IsEnum(PropertyStatus, { message: 'status must be a valid PropertyStatus value' })
+    @Transform(({ value }) => value ? value : PropertyStatus.AVAILABLE ) 
+    status: PropertyStatus
+
+    // @IsOptional()
+    // @IsString()
+    // images: string
 }
